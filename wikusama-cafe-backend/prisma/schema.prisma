@@ -1,0 +1,97 @@
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id_user   Int      @id @default(autoincrement())
+    nama_user String   @db.VarChar(100)
+    username  String   @unique @db.VarChar(100)
+    password  String   @db.VarChar(255)
+    role      Role     @default(kasir)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    transaksi Transaksi[]
+
+    @@map("users")
+}
+
+enum Role {
+    kasir
+    manajer
+    admin
+}
+
+model Menu {
+    id_menu    Int    @id @default(autoincrement())
+    nama_menu  String @db.VarChar(100)
+    jenis      Jenis?
+    deskripsi  String @db.Text
+    gambar     String @db.VarChar(255)
+    url_gambar String @db.VarChar(255)
+    harga      Int    @db.Int
+
+    detail_transaksi DetailTransaski[]
+
+    @@map("menus")
+}
+
+enum Jenis {
+    makanan
+    minuman
+}
+
+model Meja {
+    id_meja     Int         @id @default(autoincrement())
+    nomor_meja  String      @unique @db.VarChar(100)
+    status_meja statusMeja? @default(selesai)
+
+    transaksi Transaksi[]
+
+    @@map("meja")
+}
+
+enum statusMeja {
+    digunakan
+    selesai
+}
+
+model Transaksi {
+    id_transaksi     Int              @id @default(autoincrement())
+    tgl_transaksi    DateTime         @default(now())
+    id_user          Int
+    id_meja          Int
+    nama_pelanggan   String           @db.VarChar(100)
+    total_harga      Int              @db.Int
+    status_transaksi statusTransaksi? @default(belum_bayar)
+
+    detail_transaksi DetailTransaski[]
+
+    user User @relation(fields: [id_user], references: [id_user])
+    meja Meja @relation(fields: [id_meja], references: [id_meja])
+
+    @@map("transaksi")
+}
+
+enum statusTransaksi {
+    belum_bayar
+    lunas
+}
+
+model DetailTransaski {
+    id_detail_transaksi Int @id @default(autoincrement())
+    id_transaksi        Int
+    id_menu             Int
+    jumlah              Int @db.Int
+    harga               Int @db.Int
+
+    transaksi Transaksi @relation(fields: [id_transaksi], references: [id_transaksi])
+    menu      Menu      @relation(fields: [id_menu], references: [id_menu])
+
+    @@map("detail_transaksi")
+}
